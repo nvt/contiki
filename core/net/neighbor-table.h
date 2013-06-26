@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2013, Swedish Institute of Computer Science
+ * Copyright (c) 2013, Swedish Institute of Computer Science and Vrije
+ * Universiteit Brussel.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +29,7 @@
  *
  *
  * Authors: Simon Duquennoy <simonduq@sics.se>
+ *          Joris Borms <joris.borms@vub.ac.be>
  */
 
 #ifndef _NEIGHBOR_TABLE_H_
