@@ -593,7 +593,6 @@ if ((clocktime%PINGS)==1) {
 #if ROUTES && UIP_CONF_IPV6
 if ((clocktime%ROUTES)==2) {
       
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 
@@ -606,12 +605,13 @@ extern uip_ds6_netif_t uip_ds6_if;
     }
   }
   printf("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
-  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      uip_debug_ipaddr_print(&uip_ds6_nbr_cache[i].ipaddr);
+  uip_ds6_nbr_t *nbr;
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+      uip_debug_ipaddr_print(&nbr->ipaddr);
       printf("\n");
       j=0;
-    }
   }
   if (j) printf("  <none>");
   PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);

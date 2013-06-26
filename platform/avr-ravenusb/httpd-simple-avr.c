@@ -244,7 +244,6 @@ const char TOP1[] PROGMEM = "<html><head><title>ContikiRPL(Jackdaw)";
 const char TOP2[] PROGMEM = "</title></head><body>";
 const char BOTTOM[] PROGMEM = "</body></html>";
 #if UIP_CONF_IPV6
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 #endif
 
@@ -262,15 +261,16 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   ADD("<h2>Neighbors [%u max]</h2>",UIP_DS6_NBR_NB);
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
   blen = 0;
-  for(i = 0; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
+  uip_ds6_nbr_t *nbr;
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+      ipaddr_add(&nbr->ipaddr);
       ADD("<br>");
 //    if(blen > sizeof(buf) - 45) {
         PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
         blen = 0;
 //    }
-    }
   }
 
   ADD("<h2>Routes [%u max]</h2>",UIP_DS6_ROUTE_NB);

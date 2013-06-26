@@ -429,6 +429,7 @@ ipaddr_add(const uip_ipaddr_t *addr)
 int
 main(void)
 {
+  uip_ds6_nbr_t *nbr;
   initialize();
 
   while(1) {
@@ -510,7 +511,6 @@ if ((clocktime%PINGS)==1) {
 #if ROUTES && UIP_CONF_IPV6
 if ((clocktime%ROUTES)==2) {
       
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 
@@ -523,12 +523,12 @@ extern uip_ds6_netif_t uip_ds6_if;
     }
   }
   PRINTF("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
-  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      PRINTF("\n");
-      j=0;
-    }
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    ipaddr_add(&nbr->ipaddr);
+    PRINTF("\n");
+    j=0;
   }
   if (j) PRINTF("  <none>");
   {

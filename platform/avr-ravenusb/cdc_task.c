@@ -579,11 +579,11 @@ void menu_process(char c)
 
 #if UIP_CONF_IPV6_RPL
 #include "rpl.h"
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
 extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 			case 'N':
 			{	uint8_t i,j;
+			  uip_ds6_nbr_t *nbr;
 				PRINTF_P(PSTR("\n\rAddresses [%u max]\n\r"),UIP_DS6_ADDR_NB);
 				for (i=0;i<UIP_DS6_ADDR_NB;i++) {
 					if (uip_ds6_if.addr_list[i].isused) {	  
@@ -592,12 +592,13 @@ extern uip_ds6_netif_t uip_ds6_if;
 					}
 				}
 				PRINTF_P(PSTR("\n\rNeighbors [%u max]\n\r"),UIP_DS6_NBR_NB);
-				for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-					if(uip_ds6_nbr_cache[i].isused) {
-						ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-						PRINTF_P(PSTR("\n\r"));
-						j=0;
-					}
+
+				for(nbr = nbr_table_head(ds6_neighbors);
+				    nbr != NULL;
+				    nbr = nbr_table_next(ds6_neighbors, nbr)) {
+				  ipaddr_add(&nbr->ipaddr);
+				  PRINTF_P(PSTR("\n\r"));
+				  j=0;
 				}
 				if (j) PRINTF_P(PSTR("  <none>"));
 				PRINTF_P(PSTR("\n\rRoutes [%u max]\n\r"),UIP_DS6_ROUTE_NB);
