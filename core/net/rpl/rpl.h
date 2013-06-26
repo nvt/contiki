@@ -111,7 +111,6 @@ struct rpl_parent {
   struct rpl_parent *next;
   struct rpl_dag *dag;
   rpl_metric_container_t mc;
-  uip_ipaddr_t addr;
   rpl_rank_t rank;
   uint8_t link_metric;
   uint8_t dtsn;
@@ -241,5 +240,6 @@ int rpl_update_header_final(uip_ipaddr_t *addr);
 int rpl_verify_header(int);
 void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
+uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

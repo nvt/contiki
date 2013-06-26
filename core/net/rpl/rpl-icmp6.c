@@ -243,6 +243,13 @@ dio_input(void)
       PRINTF(", ");
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       PRINTF("\n");
+    } else {
+      PRINTF("RPL: Out of Memory, dropping DIO from ");
+      PRINT6ADDR(&from);
+      PRINTF(", ");
+      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      PRINTF("\n");
+      return;
     }
   } else {
     PRINTF("RPL: Neighbor already in neighbor cache\n");
@@ -697,7 +704,7 @@ dao_input(void)
       PRINTF("RPL: Forwarding DAO to parent ");
       PRINT6ADDR(&dag->preferred_parent->addr);
       PRINTF("\n");
-      uip_icmp6_send(&dag->preferred_parent->addr,
+      uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
     if(flags & RPL_DAO_K_FLAG) {
@@ -774,7 +781,7 @@ dao_output(rpl_parent_t *n, uint8_t lifetime)
   PRINT6ADDR(&n->addr);
   PRINTF("\n");
 
-  uip_icmp6_send(&n->addr, ICMP6_RPL, RPL_CODE_DAO, pos);
+  uip_icmp6_send(rpl_get_parent_ipaddr(n), ICMP6_RPL, RPL_CODE_DAO, pos);
 }
 /*---------------------------------------------------------------------------*/
 static void
