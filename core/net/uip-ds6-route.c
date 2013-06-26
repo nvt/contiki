@@ -53,7 +53,7 @@ LIST(notificationlist);
 static int num_routes = 0;
 
 #undef DEBUG
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
