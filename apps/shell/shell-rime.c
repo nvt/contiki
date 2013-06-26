@@ -201,7 +201,7 @@ PROCESS_THREAD(shell_routes_process, ev, data)
   for(i = 0; i < route_num(); ++i) {
     r = route_get(i);
     rimeaddr_copy((rimeaddr_t *)&msg.dest, &r->dest);
-    rimeaddr_copy((rimeaddr_t *)&msg.nexthop, &r->nexthop);
+    rimeaddr_copy((rimeaddr_t *)&msg.nexthop, uip_ds6_route_nexthop(r));
     msg.hop_count = r->cost;
     msg.seqno = r->seqno;
     shell_output(&routes_command, &msg, sizeof(msg), "", 0);

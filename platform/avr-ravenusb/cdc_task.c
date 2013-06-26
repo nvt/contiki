@@ -579,7 +579,6 @@ void menu_process(char c)
 
 #if UIP_CONF_IPV6_RPL
 #include "rpl.h"
-extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 			case 'N':
 			{	uint8_t i,j;
@@ -603,10 +602,12 @@ extern uip_ds6_netif_t uip_ds6_if;
 				if (j) PRINTF_P(PSTR("  <none>"));
 				PRINTF_P(PSTR("\n\rRoutes [%u max]\n\r"),UIP_DS6_ROUTE_NB);
 				uip_ds6_route_t *route;
-				for(route = uip_ds6_route_list_head(),j=1; route != NULL; route = list_item_next(route)) {
+		    for(route = uip_ds6_route_head();
+		        route != NULL;
+		        route = uip_ds6_route_next(r)) {
 					ipaddr_add(&route->ipaddr);
 					PRINTF_P(PSTR("/%u (via "), route->length);
-					ipaddr_add(&route->nexthop);
+					ipaddr_add(uip_ds6_route_nexthop(route));
 					if(route->state.lifetime < 600) {
 						PRINTF_P(PSTR(") %lus\n\r"), route->state.lifetime);
 					 } else {

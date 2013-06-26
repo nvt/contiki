@@ -121,7 +121,7 @@ process_request() CC_NON_BANKED
     uint32_t flip = 0;
 
     PRINTF("Routing table\n");
-    rt = uip_ds6_route_list_head();
+    rt = uip_ds6_route_head();
 
     for(i = buf[1]; i < uip_ds6_route_num_routes(); i++) {
       if(rt != NULL) {
@@ -163,7 +163,7 @@ process_request() CC_NON_BANKED
         count++;
         left -= entry_size;
 
-        rt = list_item_next(rt);
+        rt = uip_ds6_route_next(rt);
 
         if(left < entry_size) {
           break;

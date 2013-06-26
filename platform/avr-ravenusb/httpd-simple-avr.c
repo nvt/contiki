@@ -243,9 +243,6 @@ ipaddr_add(const uip_ipaddr_t *addr)
 const char TOP1[] PROGMEM = "<html><head><title>ContikiRPL(Jackdaw)";
 const char TOP2[] PROGMEM = "</title></head><body>";
 const char BOTTOM[] PROGMEM = "</body></html>";
-#if UIP_CONF_IPV6
-extern uip_ds6_route_t uip_ds6_routing_table[];
-#endif
 
 static
 PT_THREAD(generate_routes(struct httpd_state *s))
@@ -277,12 +274,14 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
   blen = 0;
   uip_ds6_route_t *route;
-  for(route = uip_ds6_route_list_head(); route != NULL; route = list_item_next(route)) {
+  for(route = uip_ds6_route_head();
+      route != NULL;
+      route = uip_ds6_route_next(r)) {
     ipaddr_add(&route->ipaddr);
     ADD("/%u (via ", route->length);
     PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
     blen=0;
-    ipaddr_add(&route->nexthop);
+    ipaddr_add(uip_ds6_route_nexthop(route->nexthop));
     if(route->state.lifetime < 600) {
       PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);
       blen=0;

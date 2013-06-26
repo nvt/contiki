@@ -511,7 +511,6 @@ if ((clocktime%PINGS)==1) {
 #if ROUTES && UIP_CONF_IPV6
 if ((clocktime%ROUTES)==2) {
       
-extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 
   uint8_t i,j;
@@ -535,17 +534,13 @@ extern uip_ds6_netif_t uip_ds6_if;
     uip_ds6_route_t *r;
     PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
     j = 1;
-    for(r = uip_ds6_route_list_head();
+    for(r = uip_ds6_route_head();
         r != NULL;
-        r = list_item_next(r)) {
+        r = uip_ds6_route_next(r)) {
       ipaddr_add(&r->ipaddr);
       PRINTF("/%u (via ", r->length);
-      ipaddr_add(&r->nexthop);
- //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-      PRINTF(") %lus\n", r->state.lifetime);
-      //     } else {
-      //       PRINTF(")\n");
-      //     }
+      ipaddr_add(uip_ds6_route_nexthop(r));
+       PRINTF(") %lus\n", r->state.lifetime);
       j = 0;
     }
   }

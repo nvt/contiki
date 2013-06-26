@@ -63,8 +63,6 @@
 
 uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 
-extern uip_ds6_route_t uip_ds6_routing_table[];
-
 extern long slip_sent;
 extern long slip_received;
 
@@ -171,12 +169,12 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   ADD("</pre>Routes<pre>");
   SEND_STRING(&s->sout, buf);
   blen = 0;
-  for(r = uip_ds6_route_list_head();
+  for(r = uip_ds6_route_head();
       r != NULL;
-      r = list_item_next(r)) {
+      r = uip_ds6_route_next(r)) {
     ipaddr_add(&r->ipaddr);
     ADD("/%u (via ", r->length);
-    ipaddr_add(&r->nexthop);
+    ipaddr_add(uip_ds6_route_nexthop(r));
     if(r->state.lifetime < 600) {
       ADD(") %lus\n", (unsigned long)r->state.lifetime);
     } else {

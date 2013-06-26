@@ -555,7 +555,6 @@ PT_THREAD(neighbors(struct httpd_state *s, char *ptr))
 #endif
 
 #if WEBSERVER_CONF_ROUTES
-extern uip_ds6_route_t uip_ds6_routing_table[];
 #if WEBSERVER_CONF_ROUTE_LINKS
 static const char httpd_cgi_rtesl1[] HTTPD_STRING_ATTR = "<a href=http://[";
 static const char httpd_cgi_rtesl2[] HTTPD_STRING_ATTR = "]/status.shtml>";
@@ -571,27 +570,29 @@ static const char httpd_cgi_rtes3[] HTTPD_STRING_ATTR = ")\n";
 uint8_t i,j;
 uint16_t numprinted=0;
 struct httpd_state *s=p;
+uip_ds6_route_t *r;
   /* Span generator calls over tcp segments */
   /* Note retransmissions will execute thise code multiple times for a segment */
   i=s->starti;j=s->startj;
-  for (;i<UIP_DS6_ROUTE_NB;i++) {
-    if (uip_ds6_routing_table[i].isused) {
+  for(r = uip_ds6_route_head();
+      r != NULL;
+      r = uip_ds6_route_next(r)) {
       j++;
 
 #if WEBSERVER_CONF_ROUTE_LINKS
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl1);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl2);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtesl3);
 #else
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].ipaddr, uip_appdata + numprinted);
+      numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
 #endif
 
-      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, uip_ds6_routing_table[i].length);
-      numprinted += httpd_cgi_sprint_ip6(uip_ds6_routing_table[i].nexthop, uip_appdata + numprinted);
-      if(1 || uip_ds6_routing_table[i].state.lifetime < 3600) {
-         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, (long unsigned int)uip_ds6_routing_table[i].state.lifetime);
+      numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
+      numprinted += httpd_cgi_sprint_ip6(uip_ds6_route_nexthop(r), uip_appdata + numprinted);
+      if(1 || r->state.lifetime < 3600) {
+         numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, (long unsigned int)r->state.lifetime);
       } else {
          numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes3);
       }
