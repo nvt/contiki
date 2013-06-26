@@ -44,7 +44,6 @@
 #include "net/tcpip.h"
 #include "net/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
-#include "net/neighbor-info.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -154,8 +153,8 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
   return rep;
 }
 /*---------------------------------------------------------------------------*/
-static void
-rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
+void
+rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
 {
   uip_ipaddr_t ipaddr;
   rpl_parent_t *parent;
@@ -164,9 +163,6 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
 
   uip_ip6addr(&ipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, (uip_lladdr_t *)addr);
-  PRINTF("RPL: Neighbor ");
-  PRINT6ADDR(&ipaddr);
-  PRINTF(" is %sknown. ETX = %u\n", known ? "" : "no longer ", NEIGHBOR_INFO_FIX2ETX(etx));
 
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
@@ -174,26 +170,11 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int known, int etx)
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
         parent->updated = 1;
-        parent->link_metric = etx;
-
-        if(instance->of->parent_state_callback != NULL) {
-          instance->of->parent_state_callback(parent, known, etx);
-        }
-        if(!known) {
-          PRINTF("RPL: Removing parent ");
-          PRINT6ADDR(&parent->addr);
-          PRINTF(" in instance %u because of bad connectivity (ETX %d)\n", instance->instance_id, etx);
-          parent->rank = INFINITE_RANK;
+        if(instance->of->neighbor_link_callback != NULL) {
+          instance->of->neighbor_link_callback(parent, status, numtx);
         }
       }
     }
-  }
-
-  if(!known) {
-    PRINTF("RPL: Deleting routes installed by DAOs received from ");
-    PRINT6ADDR(&ipaddr);
-    PRINTF("\n");
-    uip_ds6_route_rm_by_nexthop(&ipaddr);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -227,7 +208,6 @@ rpl_init(void)
   default_instance = NULL;
 
   rpl_reset_periodic_timer();
-  neighbor_info_subscribe(rpl_link_neighbor_callback);
 
   /* add rpl multicast address */
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);
