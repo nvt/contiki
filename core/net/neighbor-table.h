@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2013, Swedish Institute of Computer Science and Vrije
- * Universiteit Brussel.
+ * Copyright (c) 2013, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Vrije Universiteit Brussel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 #ifndef _NEIGHBOR_TABLE_H_
 #define _NEIGHBOR_TABLE_H_
 
-#include "contiki-conf.h"
+#include "contiki.h"
 #include "net/rime/rimeaddr.h"
 #include "net/netstack.h"
 
@@ -55,7 +55,7 @@ typedef void(remove_callback_func)(item_t *item);
 /* A neighbor table */
 typedef struct nbr_table {
   int index;
-  int size;
+  int item_size;
   remove_callback_func *callback;
   item_t *data;
 } nbr_table_t;

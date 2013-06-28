@@ -1,0 +1,35 @@
+CCONFDIR=$(TOOLDIR)/cconfig
+# sources
+SOURCES_ZCONF = zconf.tab.c
+SOURCES_LXDIALOG = checklist.c inputbox.c menubox.c textbox.c util.c yesno.c
+SOURCES_CONF = conf.c
+SOURCES_MCONF = mconf.c
+# objects
+OBJECTS_ZCONF = $(addprefix $(CCONFDIR)/, $(SOURCES_ZCONF:.c=.c.o))
+OBJECTS_LXDIALOG = $(addprefix $(CCONFDIR)/lxdialog/, $(SOURCES_LXDIALOG:.c=.c.o))
+OBJECTS_CONF = $(addprefix $(CCONFDIR)/, $(SOURCES_CONF:.c=.c.o))
+OBJECTS_MCONF = $(addprefix $(CCONFDIR)/, $(SOURCES_MCONF:.c=.c.o))
+
+
+# include
+INCLUDE_LXDIALOG = -L$(CCONFDIR)/lxdialog
+
+# link
+LD_MCONF = -lncurses
+
+# we need the native GCC
+GCC      = $(Q)gcc		$(call trace,CC)
+
+CONTIKI_CLEANFILES += $(OBJECTS_CONF) $(OBJECTS_LXDIALOG) $(OBJECTS_MCONF) $(OBJECTS_ZCONF)
+
+mconf: $(OBJECTS_MCONF) $(OBJECTS_LXDIALOG) $(OBJECTS_ZCONF)
+	$(GCC) $(OBJECTS_MCONF) $(OBJECTS_LXDIALOG) $(OBJECTS_ZCONF)  $(LD_MCONF) -o $(CCONFDIR)/$@ 
+
+conf: $(OBJECTS_CONF) $(OBJECTS_ZCONF)
+	$(GCC) $(OBJECTS_CONF) $(OBJECTS_ZCONF) -o $(CCONFDIR)/$@
+
+conf_rebuild:
+	rm -f $(OBJECTS_MCONF) $(OBJECTS_CONF) $(OBJECTS_LXDIALOG) $(OBJECTS_ZCONF) $(CCONFDIR)/mconf $(CCONFDIR)/conf
+
+%.c.o: %.c
+	$(GCC) -c $< -o $@ $(INCLUDE_LXDIALOG)

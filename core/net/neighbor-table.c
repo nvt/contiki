@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2013, Swedish Institute of Computer Science and Vrije
- * Universiteit Brussel.
+ * Copyright (c) 2013, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Vrije Universiteit Brussel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,14 +65,16 @@ LIST(nbr_table_keys);
 /*---------------------------------------------------------------------------*/
 /* Get a key from a neighbor index */
 static nbr_table_key_t *
-key_from_index(int index) {
-  return index != -1 ? &((nbr_table_key_t *)neighbor_addr_mem.mem)[index] : (nbr_table_key_t *)NULL;
+key_from_index(int index)
+{
+  return index != -1 ? &((nbr_table_key_t *)neighbor_addr_mem.mem)[index] : NULL;
 }
 /*---------------------------------------------------------------------------*/
 /* Get an item from its neighbor index */
 static item_t *
-item_from_index(nbr_table_t *table, int index) {
-  return table != NULL && index != -1 ? (char *)table->data + index * table->size : NULL;
+item_from_index(nbr_table_t *table, int index)
+{
+  return table != NULL && index != -1 ? (char *)table->data + index * table->item_size : NULL;
 }
 /*---------------------------------------------------------------------------*/
 /* Get the neighbor index of an item */
@@ -86,18 +88,20 @@ index_from_key(nbr_table_key_t *key)
 static int
 index_from_item(nbr_table_t *table, item_t *item)
 {
-  return table != NULL && item != NULL ? ((int)((char *)item - (char *)table->data)) / table->size : -1;
+  return table != NULL && item != NULL ? ((int)((char *)item - (char *)table->data)) / table->item_size : -1;
 }
 /*---------------------------------------------------------------------------*/
 /* Get an item from its key */
 static item_t *
-item_from_key(nbr_table_t *table, nbr_table_key_t *key) {
+item_from_key(nbr_table_t *table, nbr_table_key_t *key)
+{
   return item_from_index(table, index_from_key(key));
 }
 /*---------------------------------------------------------------------------*/
 /* Get the key af an item */
 static nbr_table_key_t *
-key_from_item(nbr_table_t *table, item_t *item) {
+key_from_item(nbr_table_t *table, item_t *item)
+{
   return key_from_index(index_from_item(table, item));
 }
 /*---------------------------------------------------------------------------*/
@@ -122,7 +126,8 @@ index_from_lladdr(const rimeaddr_t *lladdr)
 /*---------------------------------------------------------------------------*/
 /* Get bit from "used" or "locked" bitmap */
 static int
-nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item) {
+nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item)
+{
   int item_index = index_from_item(table, item);
   if(table != NULL && item_index != -1) {
     return (bitmap[item_index] & (1 << table->index)) != 0;
@@ -134,7 +139,8 @@ nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item) {
 /*---------------------------------------------------------------------------*/
 /* Set bit in "used" or "locked" bitmap */
 static int
-nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item, int value) {
+nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, item_t *item, int value)
+{
   int item_index = index_from_item(table, item);
   if(table != NULL && item_index != -1) {
     if(value) {
@@ -296,7 +302,7 @@ nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
   item = item_from_index(table, index);
 
   /* Initialize item data and set "used" bit */
-  memset(item, 0, table->size);
+  memset(item, 0, table->item_size);
   nbr_set_bit(used_map, table, item, 1);
 
   return item;
