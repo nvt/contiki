@@ -51,7 +51,6 @@
 #endif
 
 struct phase {
-  rimeaddr_t neighbor;
   rtimer_clock_t time;
 #if PHASE_DRIFT_CORRECT
   rtimer_clock_t drift;
@@ -75,8 +74,9 @@ struct phase_queueitem {
 
 #define MAX_NOACKS_TIME       CLOCK_SECOND * 30
 
-MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
+MEMB(queued_packets_memb, struct phase_queueitem, 2*PHASE_QUEUESIZE);
 NEIGHBOR_TABLE(struct phase, nbr_phase, NULL);
+//struct phase test_mem[NEIGHBOR_TABLE_MAX_NEIGHBORS];
 
 #define DEBUG 0
 #if DEBUG
@@ -125,7 +125,6 @@ phase_update(const rimeaddr_t *neighbor, rtimer_clock_t time,
     if(mac_status == MAC_TX_OK && e == NULL) {
       e = nbr_table_add_lladdr(nbr_phase, neighbor);
       if(e) {
-        rimeaddr_copy(&e->neighbor, neighbor);
         e->time = time;
 #if PHASE_DRIFT_CORRECT
       e->drift = 0;
