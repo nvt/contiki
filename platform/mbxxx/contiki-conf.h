@@ -99,7 +99,7 @@
 #define ENERGEST_CONF_ON                        0
 #define QUEUEBUF_CONF_NUM                       2
 #define QUEUEBUF_CONF_REF_NUM                   0
-#define UIP_CONF_DS6_NBR_NBU                    4
+#define NEIGHBOR_CONF_MAX_NEIGHBORS                    4
 #define UIP_CONF_MAX_ROUTES                  4
 #define RPL_CONF_MAX_INSTANCES                  1
 #define RPL_CONF_MAX_DAG_PER_INSTANCE           1
@@ -126,7 +126,6 @@
 #define UIP_CONF_IPV6_CHECKS                    1
 #define UIP_CONF_IPV6_REASSEMBLY                0
 #define UIP_CONF_ND6_MAX_PREFIXES               2
-#define UIP_CONF_ND6_MAX_NEIGHBORS              2
 #define UIP_CONF_ND6_MAX_DEFROUTERS             1
 #define UIP_CONF_IP_FORWARD                     0
 #define UIP_CONF_BUFFER_SIZE                    140
