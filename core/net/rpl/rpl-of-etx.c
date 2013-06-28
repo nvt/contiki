@@ -44,13 +44,13 @@
  */
 
 #include "net/rpl/rpl-private.h"
-#include "net/neighbor-info.h"
+#include "net/neighbor-table.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 static void reset(rpl_dag_t *);
-static void parent_state_callback(rpl_parent_t *, int, int);
+static void neighbor_link_callback(rpl_parent_t *, int, int);
 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
 static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
@@ -58,13 +58,17 @@ static void update_metric_container(rpl_instance_t *);
 
 rpl_of_t rpl_of_etx = {
   reset,
-  parent_state_callback,
+  neighbor_link_callback,
   best_parent,
   best_dag,
   calculate_rank,
   update_metric_container,
   1
 };
+
+/* Constants for the ETX moving average */
+#define ETX_SCALE   100
+#define ETX_ALPHA   90
 
 /* Reject parents that have a higher link metric than the following. */
 #define MAX_LINK_METRIC			10
@@ -86,9 +90,7 @@ calculate_path_metric(rpl_parent_t *p)
   if(p == NULL || (p->mc.obj.etx == 0 && p->rank > ROOT_RANK(p->dag->instance))) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
   } else {
-    long etx = p->link_metric;
-    etx = (etx * RPL_DAG_MC_ETX_DIVISOR) / NEIGHBOR_INFO_ETX_DIVISOR;
-    return p->mc.obj.etx + (uint16_t) etx;
+    return p->rank + p->link_metric;
   }
 }
 
@@ -98,8 +100,29 @@ reset(rpl_dag_t *sag)
 }
 
 static void
-parent_state_callback(rpl_parent_t *parent, int known, int etx)
+neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 {
+  /* Do not penalize the ETX when collisions or transmission errors occur. */
+  if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
+    int recorded_etx = p->link_metric;
+    int packet_etx = numtx;
+    int new_etx;
+
+    if(status == MAC_TX_NOACK) {
+      packet_etx = MAX_LINK_METRIC;
+    }
+
+    new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
+        (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+
+    PRINTF("RPL: ETX changed from %d to %d (packet ETX = %d) %d\n",
+        recorded_etx / p->dag->instance->min_hoprankinc,
+        new_etx  / p->dag->instance->min_hoprankinc,
+        packet_etx / p->dag->instance->min_hoprankinc,
+        dest->u8[7]);
+    p->link_metric = new_etx;
+
+  }
 }
 
 static rpl_rank_t
@@ -112,10 +135,10 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
-    rank_increase = NEIGHBOR_INFO_FIX2ETX(RPL_INIT_LINK_METRIC) * RPL_MIN_HOPRANKINC;
+    rank_increase = RPL_INIT_LINK_METRIC;
   } else {
     /* multiply first, then scale down to avoid truncation effects */
-    rank_increase = NEIGHBOR_INFO_FIX2ETX(p->link_metric * p->dag->instance->min_hoprankinc);
+    rank_increase = p->link_metric;
     if(base_rank == 0) {
       base_rank = p->rank;
     }

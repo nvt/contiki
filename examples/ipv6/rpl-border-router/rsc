@@ -1,0 +1,7 @@
+{
+"temperature":{
+"unit":"Celcius",
+"value": 29
+},
+"leds":0
+}

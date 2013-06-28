@@ -191,9 +191,10 @@ uip_nd6_ns_input(void)
 			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			  0, NBR_STALE);
         } else {
+          uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		    &nbr->lladdr, UIP_LLADDR_LEN) != 0) {
-            memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+		    lladdr, UIP_LLADDR_LEN) != 0) {
+            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		   UIP_LLADDR_LEN);
             nbr->state = NBR_STALE;
           } else {
@@ -460,20 +461,22 @@ uip_nd6_na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
+    uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
+    lladdr = uip_ds6_nbr_get_ll(nbr);
     if(nbr == NULL) {
       goto discard;
     }
     if(nd6_opt_llao != 0) {
       is_llchange =
-        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)(&nbr->lladdr),
+        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
       if(nd6_opt_llao == NULL) {
         goto discard;
       }
-      memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+      memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 	     UIP_LLADDR_LEN);
       if(is_solicited) {
         nbr->state = NBR_REACHABLE;
@@ -496,7 +499,7 @@ uip_nd6_na_input(void)
         if(is_override || (!is_override && nd6_opt_llao != 0 && !is_llchange)
            || nd6_opt_llao == 0) {
           if(nd6_opt_llao != 0) {
-            memcpy(&nbr->lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		   UIP_LLADDR_LEN);
           }
           if(is_solicited) {

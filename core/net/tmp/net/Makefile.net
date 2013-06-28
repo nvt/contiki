@@ -1,0 +1,9 @@
+NET +=						\
+neighbor-info.c					\
+netstack.c					\
+packetbuf.c					\
+queuebuf.c					\
+lladdr.c					\
+netstats.c					\
+nullnetwork.c					\
+neighbor-table.c 				\

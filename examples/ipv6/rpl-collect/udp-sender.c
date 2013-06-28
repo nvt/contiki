@@ -64,7 +64,6 @@ collect_common_set_sink(void)
   /* A udp client can never become sink */
 }
 /*---------------------------------------------------------------------------*/
-extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
 
 void
 collect_common_net_print(void)
@@ -79,9 +78,9 @@ collect_common_net_print(void)
     PRINT6ADDR(&dag->preferred_parent->addr);
     PRINTF("\n");
   }
-  for(r = uip_ds6_route_list_head();
+  for(r = uip_ds6_route_head();
       r != NULL;
-      r = list_item_next(r)) {
+      r = uip_ds6_route_next(r)) {
     PRINT6ADDR(&r->ipaddr);
   }
   PRINTF("---\n");
