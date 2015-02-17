@@ -56,8 +56,9 @@
 #define CC2420_CONF_CHANNEL 26
 #endif /* CC2420_CONF_CHANNEL */
 
+/* Default value: -77 dBm. */
 #ifndef CC2420_CONF_CCA_THRESH
-#define CC2420_CONF_CCA_THRESH -45
+#define CC2420_CONF_CCA_THRESH -32
 #endif /* CC2420_CONF_CCA_THRESH */
 
 #ifndef CC2420_CONF_AUTOACK
