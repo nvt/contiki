@@ -36,6 +36,7 @@
 #include "dev/leds.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
+#include "dev/radio.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
@@ -248,6 +249,27 @@ start_network_layer()
    * TIMESYNCH_CONF_ENABLED further things may need to be moved here */
 }
 /*---------------------------------------------------------------------------*/
+static void
+print_network_conf(void)
+{
+  radio_value_t value;
+
+  PRINTF("%s %s %s, channel check rate %lu Hz",
+         NETSTACK_LLSEC.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()));
+
+  if(NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &value) == RADIO_RESULT_OK) {
+    PRINTF(", radio channel %u", (unsigned)value);
+  }
+
+  if(NETSTACK_RADIO.get_value(RADIO_PARAM_CCA_THRESHOLD, &value) == RADIO_RESULT_OK) {
+    PRINTF(", CCA threshold %d dBm", (int)value);
+  }
+
+  PRINTF("\n");
+}
+/*---------------------------------------------------------------------------*/
 #if WITH_TINYOS_AUTO_IDS
 uint16_t TOS_NODE_ID = 0x1234; /* non-zero */
 uint16_t TOS_LOCAL_ADDRESS = 0x1234; /* non-zero */
@@ -361,25 +383,15 @@ main(int argc, char **argv)
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
 
-  PRINTF("%s %s %s, channel check rate %lu Hz, radio channel %u, CCA threshold %i\n",
-         NETSTACK_LLSEC.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
-         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
-                         NETSTACK_RDC.channel_check_interval()),
-         CC2420_CONF_CHANNEL,
-         CC2420_CONF_CCA_THRESH);
-
 #else /* NETSTACK_CONF_WITH_IPV6 */
 
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
   NETSTACK_NETWORK.init();
 
-  PRINTF("%s %s %s, channel check rate %lu Hz, radio channel %u\n",
-         NETSTACK_LLSEC.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
-         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
-                         NETSTACK_RDC.channel_check_interval()),
-         CC2420_CONF_CHANNEL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  print_network_conf();
 
 #if !NETSTACK_CONF_WITH_IPV4 && !NETSTACK_CONF_WITH_IPV6
   uart1_set_input(serial_line_input_byte);
