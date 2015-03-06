@@ -162,7 +162,7 @@ handle_dio_timer(void *ptr)
     /* check if we need to double interval */
     if(instance->dio_intcurrent < instance->dio_intmin + instance->dio_intdoubl) {
       instance->dio_intcurrent++;
-      PRINTF("RPL: DIO Timer interval doubled %d\n", instance->dio_intcurrent);
+      PRINTF("RPL: DIO Timer interval doubled %u\n", instance->dio_intcurrent);
     }
     new_dio_interval(instance);
   }
@@ -203,6 +203,9 @@ static void handle_dao_timer(void *ptr);
 static void
 set_dao_lifetime_timer(rpl_instance_t *instance)
 {
+  uint64_t expiration_time;
+  clock_time_t time_out;
+
   if(rpl_get_mode() == RPL_MODE_FEATHER) {
     return;
   }
@@ -210,13 +213,19 @@ set_dao_lifetime_timer(rpl_instance_t *instance)
   /* Set up another DAO within half the expiration time, if such a
      time has been configured */
   if(instance->lifetime_unit != 0xffff && instance->default_lifetime != 0xff) {
-    clock_time_t expiration_time;
-    expiration_time = (clock_time_t)instance->default_lifetime *
-      (clock_time_t)instance->lifetime_unit *
-      CLOCK_SECOND / 2;
-    PRINTF("RPL: Scheduling DAO lifetime timer %u ticks in the future\n",
-           (unsigned)expiration_time);
-    ctimer_set(&instance->dao_lifetime_timer, expiration_time,
+    expiration_time = (uint64_t)instance->default_lifetime *
+      (uint64_t)instance->lifetime_unit *
+      (CLOCK_SECOND / 2);
+    time_out = (clock_time_t)expiration_time;
+    if(expiration_time != time_out) {
+      /* The expiration time is too large for the clock_time_t width;
+         use the maximum clock_time_t value as a fallback. */
+      time_out = ~((clock_time_t)0);
+    }
+
+    PRINTF("RPL: Scheduling DAO lifetime timer %lu ticks in the future\n",
+           (unsigned long)time_out);
+    ctimer_set(&instance->dao_lifetime_timer, time_out,
                handle_dao_timer, instance);
   }
 }
